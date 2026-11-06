@@ -1,0 +1,29 @@
+
+# Python virtual environment
+.venv/
+
+# Python cache and temporary files
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+
+# Local secrets and environment configuration
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Original assignment and source datasets
+data/raw/
+docs/assignment/
+
+# Generated datasets
+data/processed/
+
+# Local logs
+*.log
+
+# Local AI development instructions
+/AGENTS.md
