@@ -14,6 +14,13 @@ __pycache__/
 !.env.example
 *.pem
 *.key
+*.p8
+*.p12
+.snowflake/
+.snowsql/
+credentials.json
+connections.toml
+/.vscode/settings.json
 
 # Original assignment and source datasets
 data/raw/

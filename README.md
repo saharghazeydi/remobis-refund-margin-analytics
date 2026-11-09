@@ -62,7 +62,7 @@ The reporting logic is implemented as Snowflake views. Automation, scheduling, a
 
 | Path | Purpose |
 | --- | --- |
-| [`docs/assignment/`](docs/assignment/) | Official assignment and data dictionary |
+| Official assignment and data dictionary | Supplied separately and not distributed in this repository |
 | [`sql/01_setup/`](sql/01_setup/) | Database objects, source load, and RAW reconciliation |
 | [`sql/02_quality/`](sql/02_quality/) | 18 read-only data-quality and financial checks |
 | [`sql/03_staging/`](sql/03_staging/) | Typed claim views, dimension enrichment, and validations |

@@ -202,4 +202,4 @@ The mart contains **2,182 groups across 21 submission months**. The user ran the
 - **Unresolved Finance questions:** Meaning of negative costs; treatment of pre-onboarding claims; approval of alias mappings; and any accounting-period recognition policy.
 - **Reconciliation:** Verify row counts, key uniqueness, earned revenue, processing costs, margin, and join cardinality at each reporting layer. Do not silently drop claims or add overlapping exposure estimates.
 
-**Source of business definitions:** [Official assignment and data dictionary](assignment/Data_Analyst_Assignment.docx).
+**Source of business definitions.** The official assignment and data dictionary were supplied separately and are not distributed in this repository.
