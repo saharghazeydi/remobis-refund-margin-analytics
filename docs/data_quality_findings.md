@@ -15,7 +15,7 @@ This register covers the fixed synthetic assignment snapshot. The 18 read-only S
 | --- | --- | --- | --- |
 | DQ-01 | Missing fields | 7,772 field occurrences | Preserve; distinguish expected missingness |
 | DQ-02 | Exact duplicate claims | 1,136 excess RAW copies | One-copy staging view validated |
-| DQ-03 | Country-name aliases | 3,714 RAW rows | Canonical key in staging; dimension join pending |
+| DQ-03 | Country-name aliases | 3,714 RAW rows | Canonical keys and enriched country join validated |
 | DQ-04 | Other reference relationships | No unmatched references in tested joins | Keep cardinality tests |
 | DQ-05 | Categorical domains | No additional invalid observed labels | Monitor new labels and blanks |
 | DQ-06 | Numeric integrity and fee eligibility | No violations in tested rules | Preserve recorded and earned fees separately |
@@ -74,7 +74,7 @@ The mapping test resolved all 3,714 rows to exactly one country reference, with 
 
 **Business impact:** An incorrect pre-mapping `INNER JOIN` could exclude **EUR 329,782.41 RAW-row margin**, or **EUR 318,662.94 one-copy margin**. These are alternative reporting-exclusion scenarios, not losses. They overlap the duplicate population.
 
-**Treatment/status:** The deployed staging view preserves source country text and derives a canonical country-name key for these four aliases. The **downstream dimension join and country-level financial attribution have not yet been validated**. Use a row-preserving join and test target uniqueness, unresolved values, row counts, and financial totals before approving the country breakdown.
+**Treatment/status:** The deployed staging view preserves source country text and derives a canonical country-name key for these four aliases. The earlier checkpoint validated the alias mappings in isolation. Subsequent Snowflake validation confirmed that the enriched country join preserved every staged claim with no unmatched country references or join multiplication. Formal approval of the alias policy remains open.
 
 **SQL:** [Reference integrity](../sql/02_quality/05_check_referential_integrity.sql) · [Unmatched countries](../sql/02_quality/06_diagnose_unmatched_countries.sql) · [Mapping validation](../sql/02_quality/07_validate_country_alias_mapping.sql) · [Financial exposure](../sql/02_quality/08_assess_country_mapping_financial_exposure.sql)
 
@@ -86,7 +86,7 @@ The mapping test resolved all 3,714 rows to exactly one country reference, with 
 
 **Business impact:** No unmatched-key exclusion or join multiplication was observed for these relationships in the current checks. This does not establish that every future reference is valid or that all blank-key checks passed.
 
-**Treatment/status:** Apply the same key normalization in reporting joins and verify cardinality again after joining the dimensions.
+**Treatment/status:** Enriched staging applies the same normalization to the claim-to-customer and claim-to-service joins. Both joins passed the snapshot validation. Retest cardinality and unmatched references for each new batch.
 
 **SQL:** [Reference integrity](../sql/02_quality/05_check_referential_integrity.sql)
 
@@ -122,7 +122,7 @@ The mapping test resolved all 3,714 rows to exactly one country reference, with 
 
 **Business impact:** Total signed costs are **EUR -7,293.06** at both RAW and one-copy grain. Keeping these costs increases calculated margin by EUR 7,293.06 compared with setting them to zero. That comparison is a sensitivity, not an approved adjustment.
 
-**Treatment/status:** The staging view preserves signed costs. Their business meaning is not confirmed; Finance must determine whether they are valid reversals, adjustments, or source errors. An explicit review flag is proposed, but it is not yet implemented in the staging view.
+**Treatment/status:** The staging view preserves signed costs. Their business meaning is not confirmed; Finance must determine whether they are valid reversals, adjustments, or source errors. The enriched staging view implements `NEGATIVE_COST_FLAG` for review. No cost adjustment has been approved.
 
 **SQL:** [Fee and cost validation](../sql/02_quality/12_validate_fee_and_negative_costs.sql)
 
@@ -146,7 +146,7 @@ The mapping test resolved all 3,714 rows to exactly one country reference, with 
 
 **Business impact:** RAW affected margin is **EUR 43,204.87** (EUR 77,993.51 earned fees minus EUR 34,788.64 costs). One-copy affected margin is **EUR 41,900.62** (EUR 76,416.38 minus EUR 34,515.76). This is exposure associated with an anomaly, **not a confirmed loss**. The two populations are alternatives; do not add them.
 
-**Treatment/status:** Keep the claims and retain their dates. Confirm the contract-date definition and business policy before any correction or exclusion. A pre-onboarding review flag is proposed but is not yet included in the staging view.
+**Treatment/status:** Keep the claims and retain their dates. Confirm the contract-date definition and business policy before any correction or exclusion. The enriched staging view implements `PRE_ONBOARDING_FLAG` for review. No correction or exclusion has been approved.
 
 **SQL:** [Temporal relationships](../sql/02_quality/14_validate_temporal_relationships.sql) · [Onboarding diagnosis](../sql/02_quality/15_diagnose_pre_onboarding_claims.sql) · [Financial exposure](../sql/02_quality/16_assess_pre_onboarding_financial_exposure.sql)
 
@@ -158,7 +158,7 @@ The mapping test resolved all 3,714 rows to exactly one country reference, with 
 
 **Business impact:** Historical and current segments answer different questions. Replacing the historical attribute with the current one could distort historical margin reporting. A difference alone is not evidence of incorrect data.
 
-**Treatment/status:** Preserve the claim-time segment. The staging view keeps missing historical values as `NULL`; display them as `Unknown` only in a reporting layer if needed. Do not backfill them from the current dimension.
+**Treatment/status:** Preserve the claim-time segment. The staging view keeps missing historical values as `NULL`, and the monthly mart displays them as `Unknown`. Do not backfill them from the current dimension.
 
 **SQL:** [Segment comparison](../sql/02_quality/17_check_customer_segment_consistency.sql)
 
@@ -185,16 +185,20 @@ The Snowflake validation export for `STAGING.STG_REFUND_CLAIMS` confirms:
 | Processing cost (EUR) | 7,860,558.99 |
 | Margin (EUR) | 9,706,889.41 |
 
-**Evidence boundary:** The staging view creation was confirmed by a user-supplied Snowflake screenshot. Its values were checked against the user-supplied validation CSV and check 18. ChatGPT Work did not rerun these Snowflake statements, and the exports have not been stored in the repository. Downstream dimension enrichment and monthly margin aggregation remain unvalidated.
+**Earlier validation checkpoint.** A user-supplied Snowflake screenshot confirmed creation of the base staging view. Its validation CSV reconciled to check 18. The earlier validation artifacts have not been archived in the repository.
 
-**SQL:** [Financial baseline](../sql/02_quality/18_reconcile_financial_baseline.sql) · [Create staging view](../sql/03_staging/01_create_stg_refund_claims.sql) · [Validate staging view](../sql/03_staging/02_validate_stg_refund_claims.sql)
+**Enriched staging and monthly mart.** Subsequent user-provided Snowflake validation confirmed that the enriched customer, service, and country joins preserved all **89,476 unique claims**, with **zero join multiplication** and **zero unmatched references** for each of the three dimensions. The enriched view and monthly mart reconcile to **EUR 17,567,448.40 earned revenue**, **EUR 7,860,558.99 processing cost**, and **EUR 9,706,889.41 margin**.
+
+The mart contains **2,182 groups across 21 submission months**. The user ran the uniqueness check at `SUBMISSION_MONTH`, `SERVICE_CODE`, `SERVICE_COUNTRY_CODE`, and `HISTORICAL_CUSTOMER_SEGMENT` grain in Snowflake and observed zero duplicate groups. September 2026 is partial through September 17. The [reconciliation export](../reports/monthly_margin_reconciliation.csv) records the snapshot totals. ChatGPT Work checked the local exports and did not rerun the Snowflake statements.
+
+**SQL:** [Financial baseline](../sql/02_quality/18_reconcile_financial_baseline.sql) · [Create staging view](../sql/03_staging/01_create_stg_refund_claims.sql) · [Validate staging view](../sql/03_staging/02_validate_stg_refund_claims.sql) · [Validate enriched staging](../sql/03_staging/04_validate_stg_refund_claims_enriched.sql) · [Validate mart totals and grain](../sql/04_marts/02_validate_monthly_claim_margin.sql)
 
 ## Reporting rules and outstanding decisions
 
 - **Margin:** `EARNED_FEE_EUR - PROCESSING_COST_EUR`, with earned fees only for Refunded claims and costs for all statuses.
 - **Reporting period:** `TRANSACTION_DATE` is the claim submission date. Monthly aggregation by this field is **submission-month cohort margin**, not accounting-period revenue recognition. Recognition dates were not supplied.
 - **Customer segments:** Use the historical fact segment for claim-time analysis. Keep the current dimension segment separate.
-- **Country:** Preserve the original submitted country value and map observed aliases to a canonical country reference. Validate the final country join and any country-level report totals.
+- **Country:** Preserve the original submitted country value and map observed aliases to a canonical country reference. The enriched country join passed for this snapshot. Recheck resolution and cardinality on future loads.
 - **Unresolved Finance questions:** Meaning of negative costs; treatment of pre-onboarding claims; approval of alias mappings; and any accounting-period recognition policy.
 - **Reconciliation:** Verify row counts, key uniqueness, earned revenue, processing costs, margin, and join cardinality at each reporting layer. Do not silently drop claims or add overlapping exposure estimates.
 
