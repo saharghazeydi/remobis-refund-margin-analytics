@@ -2,35 +2,29 @@
 
 ## Can we trust the data?
 
-**The original extract should not be used directly for monthly margin reporting.** However, the cleaned dataset is suitable for submission-month cohort analysis for the validated snapshot, subject to the outstanding business risks below.
+**The original extract should not be used for reporting without validation.** The cleaned dataset is suitable for **margin analysis by claim submission month** for the supplied snapshot. It is not an accounting-period margin report because revenue-recognition dates were not provided.
 
-The original claims extract contained 90,612 rows, including 1,136 excess exact duplicate copies. Counting all copies would increase reported margin by **€128,980.01** compared with one claim per transaction ID. In addition, 3,714 source rows used nonstandard country names that could cause incorrect country attribution or exclusion during joins.
+## What was fixed?
 
-## What has been delivered?
+The source contained **90,612 claim rows**, including **1,136 excess identical copies**. Counting those copies would overstate reported margin by **€128,980.01** compared with one record per claim. We also standardized four country-name variations affecting **3,714 RAW rows**. All country references matched after standardization in the validated dataset.
 
-A validated reporting dataset now contains **89,476 unique claims**, with:
-
-| Financial metric | Validated total |
-|---|---:|
-| Earned success fees | €17,567,448.40 |
-| Processing costs | €7,860,558.99 |
-| **Margin** | **€9,706,889.41** |
-
-The monthly reporting dataset contains 2,182 groups across 21 submission months. Reconciliation confirms that dimension joins preserve claim counts and financial totals, with no duplicate reporting keys.
+The reporting dataset contains **89,476 unique claims**, with **€17,567,448.40** in earned success fees, **€7,860,558.99** in processing costs, and **€9,706,889.41** in margin. Claim counts and financial totals reconcile across staging, dimension joins, and monthly reporting. Original source records remain unchanged.
 
 ## What risks remain?
 
-- **Negative processing costs:** 72 claims contain €7,293.06 in negative costs. Finance must confirm whether these are valid adjustments.
-- **Pre-onboarding claims:** 435 unique claims were submitted before their customers' recorded contract start dates. The business explanation remains unconfirmed.
-- **Historical classifications:** Missing customer segments remain explicitly unknown. Current customer segments are not substituted for historical values.
-- **Accounting timing:** The available transaction date is the claim submission date, not a confirmed revenue-recognition date. This report must not be described as accounting-period margin.
+- **72 claims** have negative processing costs totaling **−€7,293.06**; Finance must confirm whether these are valid adjustments.
+- **435 claims** were submitted before customer onboarding; the business reason remains unconfirmed.
+- **2,573 claims** lack historical customer segments and appear as `Unknown`. This limits segment-level analysis but does not exclude these claims from overall financial totals. Country-name mappings also require business approval.
+- Submission dates are not revenue-recognition dates. Recent cohorts contain Pending claims, and September 2026 includes submissions only through **17 September**.
 
-## Business observations
+## What stands out, and what should we do?
 
-In the first half of 2026, processing costs increased faster than earned revenue compared with the first half of 2025. This warrants investigation into service mix, country mix, and cost drivers.
+In **January–June 2026**, processing costs rose **38.5%** compared with the same six months in 2025, while earned fees rose **12.8%**. Submitted claim volume fell **3.1%**, but **average processing cost per submitted claim** increased from **€71.54 to €102.20 (+42.9%)**.
 
-August and September 2026 show negative submission-cohort margins alongside a high proportion of Pending claims. This does not establish a permanent loss: success fees are earned only after refunds, while processing costs can already be recorded. September is also incomplete, with data ending on 17 September.
+Total margin **fell 2.7%**, while margin as a share of earned fees declined from **62.4% to 53.8%**—a drop of **8.6 percentage points**. The increase in processing costs cannot be explained by a higher number of submitted claims alone. Service mix, country mix, and other cost drivers require investigation; the cause is not yet established.
 
-**Recommendation:** Use the validated dataset for submission-cohort reporting, monitor the identified exceptions, and confirm the outstanding financial rules before relying on these figures for formal accounting decisions.
+August and September 2026 show negative submission-cohort margins, but many claims remain Pending. These are not confirmed final losses.
 
-*All figures relate to synthetic case-study data, not REMOBIS's actual financial performance.*
+**Recommendation:** Use the validated data for submission-cohort reporting. Prioritize a review of processing cost per submitted claim by service and country, investigate flagged exceptions, and confirm outstanding financial rules before using these figures for formal accounting.
+
+*All figures are from synthetic case-study data, not REMOBIS's actual financial performance.*

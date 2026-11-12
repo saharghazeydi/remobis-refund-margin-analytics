@@ -1,22 +1,19 @@
+
 # Proposed Data Quality Automation
 
-**Trigger and timing**
+**When and how**
 
-Run the data-quality pipeline after each new source batch lands in Snowflake, before refreshing reporting views or downstream dashboards. Use an orchestrated, repeatable process. No scheduler is implemented in this case study.
+When a new source batch finishes loading into Snowflake, an automated workflow would run validation rules based on the existing SQL checks. The batch would be checked before approval for reporting. A controlled publication step would keep the last validated reporting dataset available if critical checks fail.
 
-**Automated checks**
+**What to check**
 
-1. **Ingestion:** Verify expected files, schema, column names, row counts, and source metadata. Detect incomplete or repeated loads.
-2. **Data integrity:** Check required keys, exact duplicates, conflicting claim versions, numeric types, date formats, valid categories, and dimension references.
-3. **Business rules:** Check fee eligibility by claim status, missing processing days on completed claims, negative costs, and claims dated before customer onboarding. Treat missing processing days on Pending claims as valid.
-4. **Financial reconciliation:** Compare RAW, deduplicated STAGING, enriched STAGING, and monthly reporting totals. Check claim counts, earned fees, processing costs, margin, and join cardinality.
+- **Ingestion:** Missing files or columns, unexpected row counts, and repeated batch loads.
+- **Data integrity:** Missing claim IDs, conflicting duplicates, invalid numeric values, dates, and categories, and unmatched dimension references.
+- **Business rules:** Success fees only for Refunded claims; processing days required for decided claims. Flag negative costs, pre-onboarding claims, and missing historical segments. Missing processing days for Pending claims are valid.
+- **Financial reconciliation:** Account for confirmed duplicate copies when comparing RAW with deduplicated staging. Check that claim counts, revenue, costs, and margin remain consistent through enrichment and monthly aggregation, without extra rows from joins.
 
-**Failure handling and notifications**
+**Who is notified**
 
-Block publication when critical checks fail, such as conflicting claim IDs, invalid financial values, unresolved required references, or unexplained reconciliation differences. Keep affected records in an exception log with source lineage; do not silently delete or change them.
+Critical failures would stop publication and alert the designated technical data owner or finance reporting owner, depending on the issue. Business warnings would go to the responsible finance owner without automatically blocking reporting.
 
-Send critical alerts to Data Engineering and Finance Operations. Send noncritical warnings, such as negative costs and pre-onboarding claims, to the Finance Controller for review. Include affected counts, financial exposure, batch identifier, and links to diagnostic results.
-
-**Monitoring**
-
-Review warnings after each batch. Review quality trends and repeated exceptions weekly. Keep execution logs and reconciliation results for audit and troubleshooting.
+Alerts would include the batch ID, affected record counts, financial impact where measurable, and details needed for investigation. The exact recipients and alert thresholds would be agreed with REMOBIS.

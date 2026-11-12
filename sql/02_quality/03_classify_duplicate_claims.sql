@@ -1,17 +1,12 @@
 
 -- ============================================================
 -- REMOBIS | DUPLICATE CLAIM CLASSIFICATION
--- ============================================================
--- Purpose:
---   Distinguish identical source records from conflicting
---   records that share the same transaction ID.
---
--- Grain:
---   One output row per duplicate classification.
---
--- RAW data is not modified.
+-- Purpose: Classify duplicate transaction IDs as identical
+--          or conflicting based on full source record content.
+-- Read-only. RAW data is not modified.
 -- ============================================================
 
+-- Step 1: Prepare claims and normalize transaction IDs.
 WITH source_claims AS (
     SELECT
         NULLIF(TRIM(TRANSACTION_ID), '') AS claim_key,
@@ -31,37 +26,17 @@ WITH source_claims AS (
     FROM REMOBIS_CASE_STUDY.RAW.FACT_REFUND_CLAIMS
 ),
 
-duplicate_keys AS (
-    SELECT claim_key
-    FROM source_claims
-    WHERE claim_key IS NOT NULL
-    GROUP BY claim_key
-    HAVING COUNT(*) > 1
-),
-
+-- Step 2: Count identical versions of each claim.
 content_variants AS (
     SELECT
-        s.claim_key,
-        s.TRANSACTION_ID,
-        s.TRANSACTION_DATE,
-        s.CUSTOMER_ID,
-        s.CUSTOMER_SEGMENT,
-        s.SERVICE_CODE,
-        s.SERVICE_COUNTRY,
-        s.CHANNEL,
-        s.INVOICE_COUNT,
-        s.GROSS_CLAIM_AMOUNT_EUR,
-        s.FEE_REVENUE_EUR,
-        s.PROCESSING_COST_EUR,
-        s.CLAIM_STATUS,
-        s.PROCESSING_DAYS,
+        *,
         COUNT(*) AS rows_per_variant
-    FROM source_claims s
-    INNER JOIN duplicate_keys d
-        ON s.claim_key = d.claim_key
+    FROM source_claims
+    WHERE claim_key IS NOT NULL
     GROUP BY ALL
 ),
 
+-- Step 3: Summarize claims that have duplicate IDs.
 key_summary AS (
     SELECT
         claim_key,
@@ -70,8 +45,10 @@ key_summary AS (
         SUM(rows_per_variant - 1) AS identical_excess_rows
     FROM content_variants
     GROUP BY claim_key
+    HAVING SUM(rows_per_variant) > 1
 )
 
+-- Step 4: Classify and report duplicate claims.
 SELECT
     CASE
         WHEN distinct_content_versions = 1

@@ -22,7 +22,7 @@ The primary output is a Snowflake view at **submission month × service × servi
 | Processing costs | EUR 7,860,558.99 |
 | **Submission-cohort margin** | **EUR 9,706,889.41** |
 
-The three static exports reconcile to the one-copy-per-claim baseline. Local checks against the source CSVs reproduced zero unmatched customer, service, or country references and zero join-generated rows after deduplication. The detailed export has zero duplicate reporting keys.
+The three static exports reconcile to the one-copy-per-claim baseline. Validation found no unmatched customer, service, or country references, no extra rows created by dimension joins, and no duplicate reporting keys in the detailed export.
 
 ## Business and financial rules
 
@@ -56,7 +56,7 @@ REMOBIS_CASE_STUDY.ANALYTICS.MART_MONTHLY_CLAIM_MARGIN
 reports/*.csv                   -- validated static Snowflake exports
 ```
 
-The reporting logic is implemented as Snowflake views. Automation, scheduling, and notifications are proposal only. dbt is a future option.
+The reporting layer uses Snowflake views. They read the underlying data when queried, so new source records are not automatically held back from reporting. A controlled publication step is proposed for future automation.
 
 ## Repository structure
 
@@ -72,13 +72,11 @@ The reporting logic is implemented as Snowflake views. Automation, scheduling, a
 | [Finance Director Summary](docs/finance_director_summary.md) | Snapshot results, business observations, and outstanding decisions |
 | [`reports/`](reports/) | [Export guide](reports/README.md), [detailed margin CSV](reports/monthly_claim_margin.csv), [reconciliation CSV](reports/monthly_margin_reconciliation.csv), and [monthly trends CSV](reports/monthly_margin_trends.csv) |
 
-Other directories may be reserved for future work; their presence does not indicate implemented Python, testing-framework, dbt, or orchestration functionality.
-
 ## Data-quality highlights
 
 | Finding | Validated observation | Treatment / status |
 | --- | --- | --- |
-| Exact duplicate claim records | 1,136 excess copies; potential EUR 128,980.01 margin difference | One deterministic copy per claim in staging; original RAW preserved |
+| Exact duplicate claim records | 1,136 excess copies; counting them would overstate reported margin by EUR 128,980.01 | One copy per claim in staging; original RAW preserved |
 | Country-name aliases | 3,714 RAW rows across four aliases | Canonical keys; enriched country joins validated in current snapshot |
 | Missing processing days | 4,277, all on Pending claims | Expected missingness, retained |
 | Negative processing costs | 72 claims; EUR -7,293.06 total | Retained and flagged; business meaning unconfirmed |
@@ -105,11 +103,11 @@ The listed exposures can overlap. **Do not add them as though they were independ
 - **Cohort maturity matters:** Recent submission months contain many Pending claims; costs can exist before success fees are earned. Current negative cohort margins do not by themselves establish final losses.
 - **Accounting recognition is not supported:** No confirmed revenue-recognition date is provided.
 - **Unresolved business questions:** Whether negative processing costs are valid reversals/adjustments, why some claims predate onboarding, and whether the proposed alias policy is formally approved.
-- **Evidence scope:** Validation applies to the supplied snapshot. The static exports support the downstream results. The data-quality register records an earlier checkpoint that predates the enriched staging and mart exports.
+- **Evidence scope:** Validation applies to the supplied snapshot only. The static CSV exports do not update when source data changes.
 
 ## Assignment deliverables
 
 - [x] Data-quality investigations and findings register
 - [x] Reporting-ready submission-cohort monthly margin mart and reconciled CSV exports
-- [x] [Automation Proposal](docs/automation_proposal.md) drafted. The half-page limit remains open in the layout review.
+- [x] [Automation Proposal](docs/automation_proposal.md) — proposed checks, timing, and notification responsibilities
 - [x] [Finance Director Summary](docs/finance_director_summary.md)

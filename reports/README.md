@@ -4,7 +4,6 @@
 
 These CSV files are reporting snapshots exported from Snowflake for the synthetic REMOBIS Data Analyst case study. They are **not live datasets** and do not refresh automatically.
 
-Export date: **2026-11-09**.
 
 ## Files and lineage
 
