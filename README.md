@@ -22,7 +22,7 @@ The primary output is a Snowflake view at **submission month × service × servi
 | Processing costs | EUR 7,860,558.99 |
 | **Submission-cohort margin** | **EUR 9,706,889.41** |
 
-The three static exports reconcile to the one-copy-per-claim baseline. Validation found no unmatched customer, service, or country references, no extra rows created by dimension joins, and no duplicate reporting keys in the detailed export.
+The three monthly exports reconcile to the one-copy-per-claim baseline. Validation found no unmatched customer, service, or country references, no extra rows created by dimension joins, and no duplicate reporting keys in the detailed export.
 
 ## Business and financial rules
 
@@ -66,11 +66,11 @@ The reporting layer uses Snowflake views. They read the underlying data when que
 | [`sql/01_setup/`](sql/01_setup/) | Database objects, source load, and RAW reconciliation |
 | [`sql/02_quality/`](sql/02_quality/) | 18 read-only data-quality and financial checks |
 | [`sql/03_staging/`](sql/03_staging/) | Typed claim views, dimension enrichment, and validations |
-| [`sql/04_marts/`](sql/04_marts/) | Monthly margin view, reconciliation, and trend query |
+| [`sql/04_marts/`](sql/04_marts/) | Monthly margin view, reconciliation, monthly trends, and H1 service margin comparison |
 | [`docs/data_quality_findings.md`](docs/data_quality_findings.md) | Findings, affected counts, treatment, and business risks |
 | [Automation Proposal](docs/automation_proposal.md) | Proposed checks, publication gates, and alert recipients |
 | [Finance Director Summary](docs/finance_director_summary.md) | Snapshot results, business observations, and outstanding decisions |
-| [`reports/`](reports/) | [Export guide](reports/README.md), [detailed margin CSV](reports/monthly_claim_margin.csv), [reconciliation CSV](reports/monthly_margin_reconciliation.csv), and [monthly trends CSV](reports/monthly_margin_trends.csv) |
+| [`reports/`](reports/) | [Export guide](reports/README.md), three monthly exports ([detailed margin CSV](reports/monthly_claim_margin.csv), [reconciliation CSV](reports/monthly_margin_reconciliation.csv), and [monthly trends CSV](reports/monthly_margin_trends.csv)), plus the [H1 service margin comparison CSV](reports/h1_service_margin_comparison.csv) |
 
 ## Data-quality highlights
 
@@ -92,8 +92,8 @@ The listed exposures can overlap. **Do not add them as though they were independ
 1. Inspect the original assignment, schema definitions, source files, and [`sql/01_setup/`](sql/01_setup/) scripts. For a **fresh** environment, run setup scripts in numeric order and upload the four source CSVs to the RAW stage after creating it and before validating staged files. Existing environments require checking current objects and load state first; do not blindly rerun a load or overwrite source data.
 2. Run the read-only checks in [`sql/02_quality/`](sql/02_quality/) and review exceptions. In particular, confirm key completeness and that repeated IDs have **identical** source values before applying one-copy deduplication.
 3. Create and validate the staging views in [`sql/03_staging/`](sql/03_staging/) in numeric order. Check claim uniqueness, dimension join cardinality, unmatched references, and financial totals.
-4. Create the monthly mart with [`01_create_monthly_claim_margin.sql`](sql/04_marts/01_create_monthly_claim_margin.sql). Run [`02_validate_monthly_claim_margin.sql`](sql/04_marts/02_validate_monthly_claim_margin.sql) and check for duplicate groups on submission month, service code, service country code, and historical customer segment.
-5. Run [`03_analyze_monthly_margin_trends.sql`](sql/04_marts/03_analyze_monthly_margin_trends.sql). Export a SELECT from the mart view, the reconciliation query result, and the monthly trend query result. See [`reports/README.md`](reports/README.md) for file names and definitions.
+4. Create the monthly mart with [`01_create_monthly_claim_margin.sql`](sql/04_marts/01_create_monthly_claim_margin.sql). Run [`02_validate_monthly_claim_margin.sql`](sql/04_marts/02_validate_monthly_claim_margin.sql) and confirm the first query returns the reconciliation totals. The second query checks for duplicate groups on submission month, service code, service country code, and historical customer segment.
+5. Run [`03_analyze_monthly_margin_trends.sql`](sql/04_marts/03_analyze_monthly_margin_trends.sql). Export the result of a `SELECT` from the mart view, the result of the first query in `02_validate_monthly_claim_margin.sql`, and the monthly trend query result. Run [`04_analyze_h1_service_margin.sql`](sql/04_marts/04_analyze_h1_service_margin.sql) and export its result as [`reports/h1_service_margin_comparison.csv`](reports/h1_service_margin_comparison.csv). See [`reports/README.md`](reports/README.md) for file names and definitions.
 
 **Snapshot reconciliation checkpoints:** 90,612 RAW claims → 89,476 unique staging claims → 89,476 enriched claims → 89,476 claims across 2,182 monthly groups. Earned revenue, cost, and margin after deduplication must agree with the values above. New source snapshots require fresh checks; the constants are evidence for this supplied snapshot, not universal rules.
 

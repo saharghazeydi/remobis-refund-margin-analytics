@@ -7,11 +7,14 @@ These CSV files are reporting snapshots exported from Snowflake for the syntheti
 
 ## Files and lineage
 
+The three monthly exports cover the full snapshot. The additional H1 export compares January-June 2025 with January-June 2026.
+
 | File | Source SQL | Grain | Rows |
 | --- | --- | --- | ---: |
-| `monthly_claim_margin.csv` | [`01_create_monthly_claim_margin.sql`](../sql/04_marts/01_create_monthly_claim_margin.sql) | Submission month × service × service country × historical customer segment | 2,182 |
-| `monthly_margin_trends.csv` | [`03_analyze_monthly_margin_trends.sql`](../sql/04_marts/03_analyze_monthly_margin_trends.sql) | One row per submission month | 21 |
-| `monthly_margin_reconciliation.csv` | [`02_validate_monthly_claim_margin.sql`](../sql/04_marts/02_validate_monthly_claim_margin.sql) | One reconciliation row for the full extract | 1 |
+| [`monthly_claim_margin.csv`](monthly_claim_margin.csv) | `SELECT` from the mart view defined in [`01_create_monthly_claim_margin.sql`](../sql/04_marts/01_create_monthly_claim_margin.sql) | Submission month × service × service country × historical customer segment | 2,182 |
+| [`monthly_margin_trends.csv`](monthly_margin_trends.csv) | [`03_analyze_monthly_margin_trends.sql`](../sql/04_marts/03_analyze_monthly_margin_trends.sql) | One row per submission month | 21 |
+| [`monthly_margin_reconciliation.csv`](monthly_margin_reconciliation.csv) | First query in [`02_validate_monthly_claim_margin.sql`](../sql/04_marts/02_validate_monthly_claim_margin.sql) | One reconciliation row for the full extract | 1 |
+| [`h1_service_margin_comparison.csv`](h1_service_margin_comparison.csv) | [`04_analyze_h1_service_margin.sql`](../sql/04_marts/04_analyze_h1_service_margin.sql) | One row per reporting group | 3 |
 
 The monthly margin view is `REMOBIS_CASE_STUDY.ANALYTICS.MART_MONTHLY_CLAIM_MARGIN`. It depends on the two views defined in [`sql/03_staging`](../sql/03_staging), which prepare one row per claim and enrich it with customer, service, and country attributes.
 
@@ -50,9 +53,11 @@ The detailed export contains **2,182** unique reporting-grain combinations acros
 
 1. Follow the SQL setup and RAW ingestion scripts in [`sql/01_setup`](../sql/01_setup) for a fresh environment, and run the quality controls in [`sql/02_quality`](../sql/02_quality).
 2. Create the staging views in [`sql/03_staging`](../sql/03_staging) in filename order. Run their validation queries; check claim uniqueness, country resolution, join cardinality, and unchanged financial totals.
-3. Create the analytics view using `sql/04_marts/01_create_monthly_claim_margin.sql`.
-4. Run `sql/04_marts/02_validate_monthly_claim_margin.sql` and the separate reporting-grain uniqueness query. Confirm the totals above.
-5. Run `sql/04_marts/03_analyze_monthly_margin_trends.sql`.
-6. Export the three Snowflake query results as CSV to this folder, using the filenames in the table above. Preserve CSV text and numeric formats; do not resave exports through Excel.
+3. Create the analytics view using `sql/04_marts/01_create_monthly_claim_margin.sql`. Export the result of a `SELECT` from the mart view as `monthly_claim_margin.csv`.
+4. Run `sql/04_marts/02_validate_monthly_claim_margin.sql`. Confirm the totals above and export the first query result as `monthly_margin_reconciliation.csv`. The second query checks reporting-grain uniqueness and should return zero rows.
+5. Run `sql/04_marts/03_analyze_monthly_margin_trends.sql` and export its result as `monthly_margin_trends.csv`.
+6. Run `sql/04_marts/04_analyze_h1_service_margin.sql` and export its result as `h1_service_margin_comparison.csv`. Keep the H1 2025 margin blank for `VAT_EXPRESS` because it has no baseline for that period.
+
+Save the four CSV files in this folder. Preserve CSV text and numeric formats. Do not resave exports through Excel.
 
 If the underlying snapshot changes, **rerun validation and update the documented counts** rather than assuming these fixed results still apply.

@@ -1,22 +1,25 @@
-# Proposed Data Quality Automation
+# REMOBIS — Proposed Data Quality Automation
 
-## When and how
+### When and how
 
-After each new source batch is loaded into Snowflake, an automated workflow would run the existing SQL validation checks before approving the data for reporting. Results would be logged by batch ID, including check status, affected rows, and financial impact where measurable.
+After each new source batch is loaded into Snowflake, automated SQL checks would run before reporting publication. Results would be logged by batch ID, including check status, affected records and financial impact where measurable.
 
-A controlled publication step would preserve the last validated reporting snapshot if critical checks fail. Failed batches could be investigated and reprocessed safely without creating duplicate records.
+A controlled release process would preserve the last approved reporting snapshot if critical checks fail. Failed batches could be corrected and safely reprocessed without creating duplicates.
 
-## What to check
+### What to check
 
-- **Ingestion:** Missing files or columns, unexpected row counts, and duplicate batch loads.
-- **Data integrity:** Missing claim IDs, conflicting duplicates, invalid numeric values, dates or categories, and unmatched dimension references.
-- **Business rules:** Success fees only for Refunded claims; processing days required for decided claims. Flag negative costs, pre-onboarding claims, and missing historical segments. Missing processing days for Pending claims are valid.
-- **Financial reconciliation:** Account for verified duplicate copies when comparing RAW with deduplicated staging. Reconcile claim counts, earned revenue, processing costs, and margin across staging, enrichment, and monthly aggregation. Detect unexpected row multiplication from joins.
+- **Ingestion and integrity:** Missing files or columns, duplicate loads, missing claim IDs, conflicting duplicates, invalid values, unmatched references and unexpected join multiplication.
+- **Business rules:** Earned fees only for Refunded claims; processing days required for decided claims. Flag negative costs, pre-onboarding claims and missing historical segments. Missing processing days for Pending claims are expected.
+- **Financial reconciliation:** Account for verified identical duplicates when comparing RAW with staging. Reconcile claim counts, earned fees, processing costs and margin across staging, enrichment and monthly reporting.
 
-## Who is notified
+### Notifications and actions
 
-**Critical failures** would block publication and notify the responsible technical data owner or finance reporting owner.
+**PASS:** Approve the validated batch for publication.
 
-**Business warnings** would be logged and sent to the responsible finance owner without automatically blocking reporting.
+**WARNING:** Log exceptions and notify the relevant owner. Technical issues go to the Data Owner, financial exceptions to Finance, and customer-related issues to the responsible operational owner. Publication follows an agreed policy.
 
-Alerts would identify the batch, failed check, affected record counts, and financial impact where measurable. Alert thresholds and recipients would be agreed with REMOBIS.
+**CRITICAL FAIL:** Block the new reporting release for critical issues, such as conflicting claim records or unexplained financial differences. Alert the technical Data Owner and notify the Finance Reporting Owner if financial reporting is affected.
+
+Alert recipients, thresholds and escalation rules would be agreed with REMOBIS.
+
+*Design proposal only; automation and publication controls have not been implemented.*
