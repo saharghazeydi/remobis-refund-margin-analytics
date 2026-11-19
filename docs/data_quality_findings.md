@@ -1,4 +1,4 @@
-# REMOBIS — Data Quality Findings
+# Data Quality Findings
 
 ## Scope and validation
 

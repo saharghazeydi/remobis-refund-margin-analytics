@@ -1,4 +1,4 @@
-# REMOBIS — Finance Director Summary
+# Finance Director Summary
 
 ## Can we trust the data?
 
@@ -77,4 +77,4 @@ This analysis identifies VAT_EXPRESS as a priority for further investigation. Ho
 
 ---
 
-*All figures are based on synthetic case-study data supplied for the REMOBIS assignment. They do not represent REMOBIS's actual financial performance.*
+*All figures are based on synthetic data and do not represent the actual financial performance of any company.*

@@ -22,8 +22,7 @@ credentials.json
 connections.toml
 /.vscode/settings.json
 
-# Original assignment and source datasets
-data/raw/
+# Original assignment documents
 docs/assignment/
 
 # Generated datasets
@@ -34,3 +33,6 @@ data/processed/
 
 # Local AI development instructions
 /AGENTS.md
+
+# macOS system files
+.DS_Store

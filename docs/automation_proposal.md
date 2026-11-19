@@ -1,4 +1,4 @@
-# REMOBIS — Proposed Data Quality Automation
+# Proposed Data Quality Automation
 
 ### When and how
 
@@ -20,6 +20,6 @@ A controlled release process would preserve the last approved reporting snapshot
 
 **CRITICAL FAIL:** Block the new reporting release for critical issues, such as conflicting claim records or unexplained financial differences. Alert the technical Data Owner and notify the Finance Reporting Owner if financial reporting is affected.
 
-Alert recipients, thresholds and escalation rules would be agreed with REMOBIS.
+Alert recipients, thresholds and escalation rules would be agreed with the relevant business stakeholders.
 
 *Design proposal only; automation and publication controls have not been implemented.*

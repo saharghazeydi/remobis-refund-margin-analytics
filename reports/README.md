@@ -1,8 +1,8 @@
-# REMOBIS — Reporting Exports
+# Reporting Exports
 
 ## Purpose
 
-These CSV files are reporting snapshots exported from Snowflake for the synthetic REMOBIS Data Analyst case study. They are **not live datasets** and do not refresh automatically.
+These CSV files are reporting snapshots exported from Snowflake for a synthetic refund-claims financial analytics project. They are **not live datasets** and do not refresh automatically.
 
 
 ## Files and lineage
@@ -16,7 +16,7 @@ The three monthly exports cover the full snapshot. The additional H1 export comp
 | [`monthly_margin_reconciliation.csv`](monthly_margin_reconciliation.csv) | First query in [`02_validate_monthly_claim_margin.sql`](../sql/04_marts/02_validate_monthly_claim_margin.sql) | One reconciliation row for the full extract | 1 |
 | [`h1_service_margin_comparison.csv`](h1_service_margin_comparison.csv) | [`04_analyze_h1_service_margin.sql`](../sql/04_marts/04_analyze_h1_service_margin.sql) | One row per reporting group | 3 |
 
-The monthly margin view is `REMOBIS_CASE_STUDY.ANALYTICS.MART_MONTHLY_CLAIM_MARGIN`. It depends on the two views defined in [`sql/03_staging`](../sql/03_staging), which prepare one row per claim and enrich it with customer, service, and country attributes.
+The monthly margin view is defined in [`01_create_monthly_claim_margin.sql`](../sql/04_marts/01_create_monthly_claim_margin.sql). It depends on the two staging views defined in [`sql/03_staging`](../sql/03_staging), which prepare one row per claim and enrich it with customer, service, and country attributes.
 
 ## Financial definitions
 
@@ -47,7 +47,7 @@ The detailed export contains **2,182** unique reporting-grain combinations acros
 - September 2026 covers submissions **only through September 17** and is not a full month.
 - Recent submission cohorts have many Pending claims: processing costs can be recorded before related success fees are earned. Their current margins can change as claims are resolved.
 - Negative costs, claims submitted before customer onboarding, and country aliases are documented in [`data_quality_findings.md`](../docs/data_quality_findings.md). Their financial exposure figures can overlap and must not be added together.
-- The source contains synthetic case-study data. No claim is made about REMOBIS's actual business performance.
+- The source contains synthetic case-study data. The reported figures do not represent the actual financial performance of any company.
 
 ## Reproduce the exports
 
